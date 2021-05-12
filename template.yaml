@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  node-aws-paramstore
+
+Resources:
+  MyTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Timeout: 900
+      FunctionName: MyTrigger
+      Policies:
+        - Statement:
+          - Sid: SSMParameterPolicy
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:PutParameter
+            Resource: '*' # Use a more restrictive policy
+
+  MyScheduleRule: 
+    Type: AWS::Events::Rule
+    Properties:
+      Name: MyScheduleRule
+      Description: Trigger my test run
+      ScheduleExpression: cron(00 18 ? * MON-FRI *) # This is in GMT
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Fn::GetAtt: 
+              - MyTriggerFunction
+              - Arn
+          Id: "my-schedule-trigger"
+          Input: '{"name": "test-param"}' # This is optional and it is used as input to the handler
+
+  MyTriggerFunctionPermissionsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref MyTriggerFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - MyScheduleRule
+          - Arn
