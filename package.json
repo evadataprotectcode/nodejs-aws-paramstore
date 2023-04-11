@@ -4,7 +4,7 @@
   "description": "nodejs lambda to replace value with uuid in AWS paramstore",
   "main": "index.js",
   "devDependencies": {
-    "aws-sdk": "^2.905.0"
+    "aws-sdk": "^2.1354.0"
   },
   "dependencies": {
     "uuid": "^8.3.2"
